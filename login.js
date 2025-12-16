@@ -1,20 +1,98 @@
 // --- THEME TOGGLE FOR LOGIN SCREEN ---
 const loginThemeToggle = document.getElementById("loginThemeToggle");
-let isDarkLogin = true;
 
-// Ustaw domyślny motyw przy ładowaniu
-document.documentElement.setAttribute("theme", "dark");
+// Load saved theme from localStorage or default to "dark"
+const loginSavedTheme = localStorage.getItem("theme") || "dark";
+
+// Set theme on load
+document.documentElement.setAttribute("theme", loginSavedTheme);
+
+// Function to update theme icon
+function updateLoginThemeIcon(theme) {
+  const icon = loginThemeToggle?.querySelector("i");
+  if (!icon) return;
+
+  if (theme === "dark") {
+    icon.className = "ph ph-sun";
+  } else {
+    icon.className = "ph ph-moon";
+  }
+}
+
+// Set correct icon on load
+updateLoginThemeIcon(loginSavedTheme);
 
 loginThemeToggle.addEventListener("click", () => {
-  isDarkLogin = !isDarkLogin;
-  document.documentElement.setAttribute(
-    "theme",
-    isDarkLogin ? "dark" : "light"
-  );
-  // Zmiana ikony
-  loginThemeToggle.innerHTML = isDarkLogin
-    ? '<i class="ph ph-sun" style="font-size:20px"></i>'
-    : '<i class="ph ph-moon" style="font-size:20px"></i>';
+  const current = document.documentElement.getAttribute("theme");
+  const newTheme = current === "dark" ? "light" : "dark";
+
+  // Save to localStorage
+  localStorage.setItem("theme", newTheme);
+
+  // Update theme attribute
+  document.documentElement.setAttribute("theme", newTheme);
+
+  // Update icon
+  updateLoginThemeIcon(newTheme);
+
+  // Refresh glass effect after theme change
+  if (window.GlassEffect && window.GlassEffect.updateTheme) {
+    window.GlassEffect.updateTheme();
+  }
+});
+
+// --- STYLE SELECTOR FOR LOGIN SCREEN ---
+const loginStyleToggle = document.getElementById("loginStyleToggle");
+const loginStyleDropdown = document.getElementById("loginStyleDropdown");
+const loginStyleOptions = document.querySelectorAll(".login-style-option");
+
+// Load saved style from localStorage or default to "glitch"
+const loginSavedStyle = localStorage.getItem("backgroundStyle") || "glitch";
+document.documentElement.setAttribute("data-style", loginSavedStyle);
+
+// Set active style option on load
+loginStyleOptions.forEach((option) => {
+  if (option.getAttribute("data-style") === loginSavedStyle) {
+    option.classList.add("active");
+  }
+});
+
+// Toggle dropdown
+loginStyleToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  loginStyleDropdown.classList.toggle("active");
+});
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  if (!loginStyleToggle.contains(e.target) && !loginStyleDropdown.contains(e.target)) {
+    loginStyleDropdown.classList.remove("active");
+  }
+});
+
+// Handle style selection
+loginStyleOptions.forEach((option) => {
+  option.addEventListener("click", () => {
+    const selectedStyle = option.getAttribute("data-style");
+
+    // Update active state
+    loginStyleOptions.forEach((opt) => opt.classList.remove("active"));
+    option.classList.add("active");
+
+    // Save to localStorage (synchronize with main app)
+    localStorage.setItem("backgroundStyle", selectedStyle);
+
+    // Update data-style attribute
+    document.documentElement.setAttribute("data-style", selectedStyle);
+
+    // Update Glass Effect
+    if (window.GlassEffect && window.GlassEffect.updateTheme) {
+      window.GlassEffect.updateTheme();
+    }
+
+    // Close dropdown
+    loginStyleDropdown.classList.remove("active");
+  });
 });
 
 // --- ENCRYPTION SYSTEM ---
@@ -270,11 +348,10 @@ generateBtn.addEventListener("click", () => {
       <strong>Zaszyfrowane:</strong> ${encrypted}
     </div>
     <div style="font-size: 0.85em; opacity: 0.8;">
-      ✓ Weryfikacja dekodera: ${
-        isValid
-          ? '<span style="color: var(--success-color);">POPRAWNE</span>'
-          : '<span style="color: var(--danger-color);">BŁĄD</span>'
-      }
+      ✓ Weryfikacja dekodera: ${isValid
+      ? '<span style="color: var(--success-color);">POPRAWNE</span>'
+      : '<span style="color: var(--danger-color);">BŁĄD</span>'
+    }
     </div>
   `;
   encryptedOutput.style.color = isValid
