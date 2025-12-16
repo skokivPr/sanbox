@@ -60,7 +60,7 @@ function sanitizeUrl(url) {
 }
 
 // --- DATA FETCHING (ZAAWANSOWANE) ---
-// Konfiguracja URL (Base64 encoded)
+// Konfiguracja URL 
 const URL_MAIN = atob(
   "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3Nrb2tpdlByL2pzb24tbGlzdGEvbWFpbi9odG1sLmpzb24="
 );
@@ -405,3 +405,4 @@ searchInput.addEventListener("input", (e) => {
   const filtered = projects.filter((p) => p.title.toLowerCase().includes(term));
   renderProjects(filtered);
 });
+
