@@ -1,3 +1,6 @@
+
+
+
 // --- PROJEKTY DANE ---
 let projects = [];
 let currentFiltered = []; // Przechowuje aktualny stan filtrowania
@@ -159,19 +162,91 @@ async function updateCardDescriptions(projectsList) {
 }
 
 // --- THEME LOGIC ---
-let isDark = true;
+// Load saved theme from localStorage or default to "dark"
+const savedTheme = localStorage.getItem("theme") || "dark";
+let isDark = savedTheme === "dark";
 
-// Set Default Dark
-document.documentElement.setAttribute("theme", "dark");
-// Init icon (już w HTML, ale tu dla pewności przy logice) - Phosphor nie wymaga JS do renderowania
+// Set theme on load
+document.documentElement.setAttribute("theme", savedTheme);
+
+// Set correct icon on load
+themeBtn.innerHTML = isDark
+  ? '<i class="ph ph-sun" style="font-size:20px"></i>'
+  : '<i class="ph ph-moon" style="font-size:20px"></i>';
 
 themeBtn.addEventListener("click", () => {
   isDark = !isDark;
-  document.documentElement.setAttribute("theme", isDark ? "dark" : "light");
-  // Zmiana ikon Phosphor (ph-moon / ph-sun)
+  const newTheme = isDark ? "dark" : "light";
+
+  // Save to localStorage
+  localStorage.setItem("theme", newTheme);
+
+  // Update theme attribute
+  document.documentElement.setAttribute("theme", newTheme);
+
+  // Update icon
   themeBtn.innerHTML = isDark
     ? '<i class="ph ph-sun" style="font-size:20px"></i>'
     : '<i class="ph ph-moon" style="font-size:20px"></i>';
+
+  // Update glass effect background
+  if (window.GlassEffect && window.GlassEffect.updateTheme) {
+    window.GlassEffect.updateTheme();
+  }
+});
+
+// --- STYLE SELECTOR ---
+const styleToggleBtn = document.getElementById("styleToggle");
+const styleDropdown = document.getElementById("styleDropdown");
+const styleOptions = document.querySelectorAll(".style-option");
+
+// Load saved style or default to "glitch"
+const savedStyle = localStorage.getItem("backgroundStyle") || "glitch";
+document.documentElement.setAttribute("data-style", savedStyle);
+
+// Set active style option
+styleOptions.forEach(option => {
+  if (option.dataset.style === savedStyle) {
+    option.classList.add("active");
+  }
+});
+
+// Toggle dropdown
+styleToggleBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  styleDropdown.classList.toggle("active");
+});
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  if (!styleDropdown.contains(e.target) && e.target !== styleToggleBtn) {
+    styleDropdown.classList.remove("active");
+  }
+});
+
+// Handle style selection
+styleOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    const selectedStyle = option.dataset.style;
+
+    // Update active state
+    styleOptions.forEach(opt => opt.classList.remove("active"));
+    option.classList.add("active");
+
+    // Save to localStorage
+    localStorage.setItem("backgroundStyle", selectedStyle);
+
+    // Update data-style attribute
+    document.documentElement.setAttribute("data-style", selectedStyle);
+
+    // Update glass effect
+    if (window.GlassEffect && window.GlassEffect.updateTheme) {
+      window.GlassEffect.updateTheme();
+    }
+
+    // Close dropdown
+    styleDropdown.classList.remove("active");
+  });
 });
 
 // --- GRID LAYOUT HELPER ---
@@ -232,7 +307,7 @@ function renderProjects(projectsToRender) {
 
     // Generuj puste karty (fillery)
     for (let i = 0; i < missing; i++) {
-      html += `<div class="project-card empty-slot" style="background-color: var(--card-bg); pointer-events: none;"><style>.empty-slot::before { display: none !important; }</style></div>`;
+      html += `<div class="project-card empty-slot" style="background: rgb(var(--bg-rgb),0.5); pointer-events: none;"><style>.empty-slot::before { display: none !important; }</style></div>`;
     }
   }
 
